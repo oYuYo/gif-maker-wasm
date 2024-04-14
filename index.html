@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style/style.css" rel="stylesheet">
+        <script src="https://unpkg.com/budoux/bundle/budoux-ja.min.js"></script>
+        <script src="wasm_exec.js"></script>
+        <script>
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+                module = result.module;
+                inst = result.instance;
+                go.run(inst);
+            });
+        </script>
+        <title></title>
+    </head>
+    <body>
+        <h1 class="title">GIF Maker</h1>
+        <div class="contact">
+            <a href="https://github.com/oYuYo/gif-maker-wasm">
+                <img class="" src ="./images/github-mark.svg" alt="contact me"/>
+            </a>
+        </div>
+        <hr />
+        <p><budoux-ja>PNG画像から, GIFを作成します. <br />画像が切り替わる秒数の指定、出力されるGIFのサイズを指定できます.使用する画像は縦横比が同じものを使用することを推奨します. <br />また当サイトではサーバにファイルを保存する, 収集するというような処理は行っていません.</budoux-ja></p>
+        <div>
+            <p>1. 画像が切り替わる秒数を指定してください</p>
+            <input type="range" id="delay" name="delay" style="width:500px" min="10" max="2000" step="10" value="500"/>
+            <label for="delay"><output id="sec">500</output>ミリ秒</label><br />
+        </div>
+        <div>
+            <label for="source-file">2. 使用するファイルを選択してください</label><br />
+            <input type="file" id="source-file" name="source-file" multiple accept="image/png"/>
+        </div>
+        <div style="text-align: center;"><button id="conv">変換</button></div>
+        <div id="err-msg"><span id="err-msg-spn"></span></div>
+        <a href="#" id="output-file" style="display: none;"download>download</a>
+    </body>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function(){
+            delay.addEventListener("input", (event) => {
+                sec.textContent = event.target.value;
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function(){
+            const button = document.getElementById("conv");
+            button.addEventListener("click", convert_click);
+        });
+        
+        function convert_click(e) {
+            document.getElementById("err-msg-spn").innerText = "";
+
+            const num = Number.parseFloat(delay.value);
+            if (delay.value == "" || Number.isNaN(num) || num < 10 || 2000 < num) {
+                document.getElementById("err-msg-spn").innerText = "指定された秒数が不正です";
+                return;
+            }
+
+            const files = document.getElementById("source-file").files;
+            if(files.length === 0){
+                document.getElementById("err-msg-spn").innerText = "ファイルを選択してください";
+                return;
+            }
+
+            for(file of files){
+                if(file.type !== "image/png" && file.type !== 'image/jpeg'){
+                    document.getElementById("err-msg-spn").innerText = "ファイル形式が不正です";
+                    return;
+                }
+            }
+
+            if (files) {
+                fetchAllReadAsDataURL(files).then((data) => {
+                    Convert(String(num/10), String(files.length), ...data);
+               });
+            }
+        }
+
+        async function fetchAllReadAsDataURL(files) {
+            const fileArray = Array.from(files);
+            const promises = fileArray.map((file) => {
+                return fetchReadAsDataURL(file);
+            });
+
+            const res = await Promise.all(promises);
+            return res.map((data) => {
+                return data;
+            });
+        }
+
+        function fetchReadAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.addEventListener(
+                    "load",
+                    () => {
+                        resolve({
+                            fileName: file.name,
+                            base64: reader.result.split('base64,')[1]
+                        });
+                    },
+                    false,
+                );
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</html>

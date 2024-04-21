@@ -62,7 +62,7 @@
                 }
             });
 
-            const files = source-file.files;
+            const files = document.getElementById('source-file').files;
             if(files.length === 0){
                 document.getElementById("err-msg-spn").innerText = "ファイルを選択してください";
                 return;
@@ -76,16 +76,17 @@
             }
 
             if (files) {
-                fetchAllReadAsDataURL(files).then((data) => {
-                    Convert(String(num/10), String(files.length), ...data);
+                fetchAllReadAsDataURL(files, delays).then((data) => {
+                    Convert(String(files.length), ...data);
                });
             }
         }
 
-        async function fetchAllReadAsDataURL(files) {
+        async function fetchAllReadAsDataURL(files, delays) {
             const fileArray = Array.from(files);
-            const promises = fileArray.map((file) => {
-                return fetchReadAsDataURL(file);
+            const promises = fileArray.map((file, idx) => {
+                const delay = delays[idx];
+                return fetchReadAsDataURL(file, delay);
             });
 
             const res = await Promise.all(promises);
@@ -94,13 +95,14 @@
             });
         }
 
-        function fetchReadAsDataURL(file) {
+        function fetchReadAsDataURL(file, delay) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.addEventListener(
                     "load",
                     () => {
                         resolve({
+                            delay: delay.value/10 + '',
                             fileName: file.name,
                             base64: reader.result.split('base64,')[1]
                         });

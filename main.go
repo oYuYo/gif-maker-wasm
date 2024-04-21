@@ -27,18 +27,11 @@ type PNGImg struct {
 	Img      []byte
 }
 
-// args[0]: delay, args[1]: fileCount, args[2...]: files
+// args[0]: fileCount, args[1...]: files
 func Convert(this js.Value, args []js.Value) interface{} {
-	offset := 2
-	var tmp string = args[0].String()
-	delay, err := strconv.Atoi(tmp)
-	if err != nil {
-		fmt.Println(err)
-		printAlert("時間の取得に失敗しました")
-		return nil
-	}
+	offset := 1
 
-	tmp = args[1].String()
+	var tmp = args[0].String()
 	fileCount, err := strconv.Atoi(tmp)
 	if err != nil {
 		printAlert("添付されたファイルカウントの取得に失敗しました")
@@ -49,6 +42,13 @@ func Convert(this js.Value, args []js.Value) interface{} {
 	var images []*image.Paletted
 
 	for i := offset; i < offset+fileCount; i++ {
+		var num = args[i].Get("delay").String()
+		delay, err := strconv.Atoi(num)
+		if err != nil {
+			printAlert("時間の取得に失敗しました")
+			return nil
+		}
+
 		base64Decode, err := base64.StdEncoding.DecodeString(args[i].Get("base64").String())
 		if err != nil {
 			printAlert("添付された画像データの取得に失敗しました")
@@ -61,9 +61,7 @@ func Convert(this js.Value, args []js.Value) interface{} {
 			return nil
 		}
 		pal, err := palgen.Generate(img, 256)
-		//palettedImg := image.NewPaletted(img.Bounds(), palette.Plan9)
 		palettedImg := image.NewPaletted(img.Bounds(), pal)
-		//draw.Draw(palettedImg, palettedImg.Bounds(), img, image.Point{}, draw.Over)
 		draw.FloydSteinberg.Draw(palettedImg, palettedImg.Rect, img, img.Bounds().Min)
 		images = append(images, palettedImg)
 

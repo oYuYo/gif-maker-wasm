@@ -24,15 +24,19 @@
             </a>
         </div>
         <hr />
-        <p><budoux-ja>PNG画像から, GIFを作成します. <br />画像を表示する時間の指定、出力されるGIFのサイズを指定できます.使用する画像は縦横比が同じものを使用することを推奨します. <br />また当サイトではサーバにファイルを保存する, 収集するというような処理は行っていません.</budoux-ja></p>
+        <p><budoux-ja>PNG画像から, GIFを作成します. <br />
+            画像を指定したら, 次に画像を表示する時間をそれぞれ指定します. 出力されるGIFのサイズを指定できます. <br />
+            使用する画像は縦横比が同じものを使用することを推奨します. 
+            <br />また当サイトではサーバにファイルを保存する, 収集するというような処理は行っていません.</budoux-ja>
+        </p>
         <div>
-            <p>1. それぞれの画像が表示される時間を指定してください</p>
-            <input type="range" id="delay" name="delay" style="width:500px" min="10" max="2000" step="10" value="500"/>
-            <label for="delay"><output id="sec">500</output>ミリ秒</label><br />
+            <label for="source-file">1. 使用するファイルを選択してください</label><br />
+            <input type="file" id="source-file" name="source-file" multiple accept="image/png"/>
         </div>
         <div>
-            <label for="source-file">2. 使用するファイルを選択してください</label><br />
-            <input type="file" id="source-file" name="source-file" multiple accept="image/png"/>
+            <p>2. それぞれの画像が表示される時間を指定してください</p>
+        </div>
+        <div class="previews">
         </div>
         <div style="text-align: center;"><button id="conv">変換</button></div>
         <div id="err-msg"><span id="err-msg-spn"></span></div>
@@ -40,26 +44,25 @@
     </body>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function(){
-            delay.addEventListener("input", (event) => {
-                sec.textContent = event.target.value;
-            });
-        });
+            const source = document.getElementById('source-file');
+            source.addEventListener('change', updatePreview);
 
-        document.addEventListener('DOMContentLoaded', function(){
-            const button = document.getElementById("conv");
-            button.addEventListener("click", convert_click);
+            conv.addEventListener("click", convert_click);
         });
         
         function convert_click(e) {
             document.getElementById("err-msg-spn").innerText = "";
 
-            const num = Number.parseFloat(delay.value);
-            if (delay.value == "" || Number.isNaN(num) || num < 10 || 2000 < num) {
-                document.getElementById("err-msg-spn").innerText = "指定された秒数が不正です";
-                return;
-            }
+            const delays = document.querySelectorAll('input[type="range"]');
+            delays.forEach(delay => {
+                const num = Number.parseFloat(delay.value);
+                if (delay.value == "" || Number.isNaN(num) || num < 10 || 2000 < num) {
+                    document.getElementById("err-msg-spn").innerText = "指定された秒数が不正です";
+                    return;
+                }
+            });
 
-            const files = document.getElementById("source-file").files;
+            const files = source-file.files;
             if(files.length === 0){
                 document.getElementById("err-msg-spn").innerText = "ファイルを選択してください";
                 return;
@@ -107,5 +110,77 @@
                 reader.readAsDataURL(file);
             });
         }
+
+        function updatePreview(e){
+            const previews = document.querySelector(".previews");
+            while (previews.firstChild){
+                const delays = document.querySelectorAll('input[type="range"]');
+                delays.forEach((delay, idx) => {
+                    delay.removeEventListener('input', changeValuehandler);
+                });
+                previews.removeChild(previews.firstChild)
+            }
+
+            const files = document.getElementById('source-file').files;
+            if(files.length === 0){
+                document.getElementById("err-msg-spn").innerText = "ファイルが選択されていません";
+            } else {
+                const list = document.createElement("ui");
+                previews.appendChild(list);
+
+                const arrFiles = Array.from(files)
+                arrFiles.forEach((file, idx) => {
+                    const item =  document.createElement('li');
+
+                    const p = document.createElement('p');
+                    p.innerText = file.name;
+                    item.appendChild(p);
+
+                    const imgSize = document.createElement('p');
+                    imgSize.id = 'image-size' + idx;
+                    const img = document.createElement('img');
+                    img.onload = () => {
+                        let el = document.getElementById('image-size' + idx);
+                        el.innerText = '' + img.naturalWidth + ' x ' + img.naturalHeight + ' px';
+                    }
+                    img.src = URL.createObjectURL(file);
+                    img.alt = img.title = file.name;
+
+                    item.appendChild(imgSize);
+                    item.appendChild(img);
+
+                    const r = document.createElement('input');
+                    r.id = 'delay-' + idx;
+                    r.type = 'range';
+                    r.name = 'delay-' + idx;
+                    r.min = '10';
+                    r.max = '2000';
+                    r.step = '10';
+                    r.value = '500';
+                    r.dataset.num = idx;
+                    
+                    const lbl = document.createElement('label');
+                    lbl.htmlFor = 'delay-' + idx;
+                    const output = document.createElement('output');
+                    output.id = 'sec-' + idx;
+                    output.innerText = 500;
+                    lbl.appendChild(output);
+                    lbl.appendChild(document.createTextNode('ミリ秒'));
+                    
+                    item.appendChild(r);
+                    item.appendChild(lbl);
+                    list.appendChild(item);
+                });
+
+                const delays = document.querySelectorAll('input[type="range"]');
+                delays.forEach((delay, idx) => {
+                    delay.addEventListener("input", changeValuehandler);
+                });
+            }
+        }
+        const changeValuehandler = (e) => {
+            const sec = document.getElementById('sec-' + e.target.dataset.num);
+            sec.textContent = e.target.value;
+        }        
     </script>
 </html>

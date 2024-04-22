@@ -15,13 +15,6 @@ import (
 	"github.com/xyproto/palgen"
 )
 
-type ResizeType int
-
-const (
-	Vertical ResizeType = iota
-	Horizontal
-)
-
 type PNGImg struct {
 	FileName string
 	Img      []byte

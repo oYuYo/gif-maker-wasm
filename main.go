@@ -65,6 +65,7 @@ func Convert(this js.Value, args []js.Value) interface{} {
 	gif.EncodeAll(&gifData, &gif.GIF{Image: images, Delay: delays})
 
 	attachData(gifData.Bytes(), "output", ".gif")
+	attachGif(gifData.Bytes(), "output", ".gif")
 	return nil
 }
 
@@ -72,10 +73,20 @@ func attachData(data []byte, fileName string, ext string) {
 	document := js.Global().Get("document")
 	el := document.Call("getElementById", "output-file")
 	encode := base64.StdEncoding.EncodeToString(data)
-	dataUri := fmt.Sprintf("data:%s;base64,%s", "image/gif", encode)
+	dataUri := fmt.Sprintf("data:image/gif;base64,%s", encode)
 	el.Set("href", dataUri)
 	el.Set("download", fileName+ext)
-	el.Call("click")
+}
+
+func attachGif(data []byte, fileName string, ext string) {
+	document := js.Global().Get("document")
+	el := document.Call("getElementById", "output-gif")
+	encode := base64.StdEncoding.EncodeToString(data)
+	dataUri := fmt.Sprintf("data:image/gif;base64,%s", encode)
+	el.Set("src", dataUri)
+
+	el = document.Call("getElementById", "download-div")
+	el.Get("style").Set("display", "")
 }
 
 func printAlert(msg string) {

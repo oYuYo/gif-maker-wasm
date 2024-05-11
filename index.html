@@ -20,7 +20,7 @@
         <h1 class="title">GIF Maker</h1>
         <div class="contact">
             <a href="https://github.com/oYuYo/gif-maker-wasm">
-                <img class="" src ="./images/github-mark.svg" alt="contact me"/>
+                <img src ="./images/github-mark.svg" alt="contact me"/>
             </a>
         </div>
         <hr />
@@ -38,16 +38,24 @@
         </div>
         <div class="previews">
         </div>
-        <div style="text-align: center;"><button id="conv">変換</button></div>
+        <div style="text-align: center;"><button id="conv">GIF生成</button></div>
         <div id="err-msg"><span id="err-msg-spn"></span></div>
-        <a href="#" id="output-file" style="display: none;"download>download</a>
+        <div style="text-align: center;">
+            <img id="output-gif">
+        </div>
+        <div id='download-div' style="text-align: center; display: none;"><button id="download">ダウンロード</button></div>
+        <a href="#" id="output-file" style="display: none;"download></a>
     </body>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function(){
             const source = document.getElementById('source-file');
             source.addEventListener('change', updatePreview);
 
-            conv.addEventListener("click", convert_click);
+            conv.addEventListener('click', convert_click);
+
+            download.addEventListener('click', () => { 
+                document.getElementById("output-file").click();
+            });
         });
         
         function convert_click(e) {
@@ -114,6 +122,9 @@
         }
 
         function updatePreview(e){
+            document.getElementById("download-div").style.display = 'none';
+            document.getElementById("output-gif").src = '';
+
             const previews = document.querySelector(".previews");
             while (previews.firstChild){
                 const delays = document.querySelectorAll('input[type="range"]');
@@ -155,17 +166,17 @@
                     r.id = 'delay-' + idx;
                     r.type = 'range';
                     r.name = 'delay-' + idx;
-                    r.min = '10';
+                    r.min = '100';
                     r.max = '2000';
-                    r.step = '10';
-                    r.value = '500';
+                    r.step = '100';
+                    r.value = '1000';
                     r.dataset.num = idx;
                     
                     const lbl = document.createElement('label');
                     lbl.htmlFor = 'delay-' + idx;
                     const output = document.createElement('output');
                     output.id = 'sec-' + idx;
-                    output.innerText = 500;
+                    output.innerText = r.value;
                     lbl.appendChild(output);
                     lbl.appendChild(document.createTextNode('ミリ秒'));
                     

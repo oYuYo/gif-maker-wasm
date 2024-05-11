@@ -16,7 +16,7 @@ hr{
 input[type="file"]{
     margin:20px 0px 30px 30px;
 }
-button#conv{
+button {
     width: 150px;
     height: 40px;
     background-color:rgb(27, 137, 255);
@@ -27,7 +27,7 @@ button#conv{
     border:none;
     font-size: 18px;
 }
-button#conv:hover{
+button:hover{
     opacity: .5;
 }
 #err-msg{
@@ -60,4 +60,7 @@ ui > li {
 ui > li > img {
     max-width: 500px;
     max-height: 500px;
+}
+#output-gif {
+    max-width:1000px;
 }
